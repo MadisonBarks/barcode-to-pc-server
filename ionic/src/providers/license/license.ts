@@ -93,7 +93,7 @@ export class LicenseProvider {
    * If the serial is passed it'll prompt the user with dialogs
    */
   updateSubscriptionStatus(serial: string = '') {
-    this.activePlan = this.store.get(Config.STORAGE_SUBSCRIPTION, LicenseProvider.PLAN_FREE)
+    this.activePlan = this.store.get(Config.STORAGE_SUBSCRIPTION, LicenseProvider.PLAN_UNLIMITED)
 
     if (serial) {
       this.serial = serial;
@@ -112,68 +112,73 @@ export class LicenseProvider {
       this.store.set(Config.STORAGE_NEXT_CHARGE_DATE, this.generateNextChargeDate());
     }
 
-    // Do not bother the license-server if there isn't an active subscription
-    if (serial == '' && this.serial == '' && this.activePlan == LicenseProvider.PLAN_FREE) {
-      // it's also required to check this.serial == '' because when there isn't
-      // a internet connection the plan gets downgraded but the serial is
-      // still saved to the storage
-      return;
-    }
+    // Go ahead and force PLAN_UNLIMITED and don't bother the licensing server
+    this.store.set(Config.STORAGE_LICENSE_EVER_ACTIVATED, true);
+    //this.store.set(Config.STORAGE_NEXT_CHARGE_DATE, this.generateNextChargeDate());
+    this.store.set(Config.STORAGE_SUBSCRIPTION, LicenseProvider.PLAN_UNLIMITED);
 
-    this.http.post(Config.URL_ORDER_CHECK, {
-      serial: this.serial,
-      uuid: this.electronProvider.uuid
-    }).subscribe(value => {
-      this.store.set(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, 0);
-      if (value['active'] == true) {
+    // // Do not bother the license-server if there isn't an active subscription
+    // if (serial == '' && this.serial == '' && this.activePlan == LicenseProvider.PLAN_FREE) {
+    //   // it's also required to check this.serial == '' because when there isn't
+    //   // a internet connection the plan gets downgraded but the serial is
+    //   // still saved to the storage
+    //   return;
+    // }
 
-        // If the plan name changed it means that a plan UPGRADE has been performed
-        if (this.activePlan != value['plan']) {
-          console.log('upgrade')
-          this.store.set(Config.STORAGE_NEXT_CHARGE_DATE, this.generateNextChargeDate());
-          this.store.set(Config.STORAGE_SUBSCRIPTION, value['plan']);
-          this.activePlan = value['plan'];
-        }
+    // this.http.post(Config.URL_ORDER_CHECK, {
+    //   serial: this.serial,
+    //   uuid: this.electronProvider.uuid
+    // }).subscribe(value => {
+    //   this.store.set(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, 0);
+    //   if (value['active'] == true) {
 
-        if (serial) {
-          let everActivated = this.store.get(Config.STORAGE_LICENSE_EVER_ACTIVATED, false);
-          if (!everActivated) {
-            this.store.set(Config.STORAGE_MONTHLY_SCAN_COUNT, 0);
-          }
-          this.store.set(Config.STORAGE_LICENSE_EVER_ACTIVATED, true);
-          this.utilsProvider.showSuccessNativeDialog('The license has been activated successfully');
-          window.confetti.start(3000);
-        }
-      } else {
-        // When the license-server says that the subscription is not active
-        // the user should be propted immediatly, no matter what is passed a
-        // serial or not.
-        this.deactivate();
-        this.utilsProvider.showErrorNativeDialog(value['message']);
-      }
-    }, (error: HttpErrorResponse) => {
-      if (serial) {
-        // if (error.status == 503) {
-        //   this.utilsProvider.showErrorNativeDialog('Unable to fetch the subscription information, try later (FS problem)');
-        // }
-        this.deactivate();
-        this.utilsProvider.showErrorNativeDialog('Unable to activate the license. Please make you sure that your internet connection is active and try again. If the error persists please contact the support.');
-      } else {
-        // Perhaps there is a connection problem, wait 15 days before asking the
-        // user to enable the connection.
-        // For simplicty the STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE field is used
-        // only within this method
-        let firstFailDate = this.store.get(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, 0);
-        let now = new Date().getTime();
-        if (firstFailDate && (now - firstFailDate) > 1296000000) { //  15 days = 1296000000 ms
-          this.store.set(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, 0);
-          this.deactivate();
-          this.utilsProvider.showErrorNativeDialog('Unable to verify your license. Please make you sure that the computer has an active internet connection');
-        } else {
-          this.store.set(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, now);
-        }
-      }
-    })
+    //     // If the plan name changed it means that a plan UPGRADE has been performed
+    //     if (this.activePlan != value['plan']) {
+    //       console.log('upgrade')
+    //       this.store.set(Config.STORAGE_NEXT_CHARGE_DATE, this.generateNextChargeDate());
+    //       this.store.set(Config.STORAGE_SUBSCRIPTION, value['plan']);
+    //       this.activePlan = value['plan'];
+    //     }
+
+    //     if (serial) {
+    //       let everActivated = this.store.get(Config.STORAGE_LICENSE_EVER_ACTIVATED, false);
+    //       if (!everActivated) {
+    //         this.store.set(Config.STORAGE_MONTHLY_SCAN_COUNT, 0);
+    //       }
+    //       this.store.set(Config.STORAGE_LICENSE_EVER_ACTIVATED, true);
+    //       this.utilsProvider.showSuccessNativeDialog('The license has been activated successfully');
+    //       window.confetti.start(3000);
+    //     }
+    //   } else {
+    //     // When the license-server says that the subscription is not active
+    //     // the user should be propted immediatly, no matter what is passed a
+    //     // serial or not.
+    //     this.deactivate();
+    //     this.utilsProvider.showErrorNativeDialog(value['message']);
+    //   }
+    // }, (error: HttpErrorResponse) => {
+    //   if (serial) {
+    //     // if (error.status == 503) {
+    //     //   this.utilsProvider.showErrorNativeDialog('Unable to fetch the subscription information, try later (FS problem)');
+    //     // }
+    //     this.deactivate();
+    //     this.utilsProvider.showErrorNativeDialog('Unable to activate the license. Please make you sure that your internet connection is active and try again. If the error persists please contact the support.');
+    //   } else {
+    //     // Perhaps there is a connection problem, wait 15 days before asking the
+    //     // user to enable the connection.
+    //     // For simplicty the STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE field is used
+    //     // only within this method
+    //     let firstFailDate = this.store.get(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, 0);
+    //     let now = new Date().getTime();
+    //     if (firstFailDate && (now - firstFailDate) > 1296000000) { //  15 days = 1296000000 ms
+    //       this.store.set(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, 0);
+    //       this.deactivate();
+    //       this.utilsProvider.showErrorNativeDialog('Unable to verify your license. Please make you sure that the computer has an active internet connection');
+    //     } else {
+    //       this.store.set(Config.STORAGE_FIRST_LICENSE_CHECK_FAIL_DATE, now);
+    //     }
+    //   }
+    // })
   } // updateSubscriptionStatus
 
   /**
