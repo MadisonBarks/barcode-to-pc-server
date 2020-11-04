@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/fttx/barcode-to-pc-server.git"
+    "url": "https://github.com/wuvvy/barcode-to-pc-server.git"
   },
   "main": "electron/src/main.js",
   "scripts": {
