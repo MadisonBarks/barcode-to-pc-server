@@ -1,5 +1,7 @@
 # Barcode to PC server
 
+Modified by wuvvy_ 
+
 ## Useful links
 
 ### Downloads
@@ -10,13 +12,12 @@
 
 ### Repositories
 
-* Server: <https://github.com/fttx/barcode-to-pc-server>
+* Server: This
 * App: <https://github.com/fttx/barcode-to-pc-app>
 
 ## Build status
 
-[![Build status](https://ci.appveyor.com/api/projects/status/un8nkjy7755fh7io?svg=true)](https://ci.appveyor.com/project/fttx/barcode-to-pc-server)
-[![Build Status](https://travis-ci.org/fttx/barcode-to-pc-server.svg)](https://travis-ci.org/fttx/barcode-to-pc-server)
+[![Build status](https://ci.appveyor.com/api/projects/status/62smygjm7bukfy6x?svg=true)](https://ci.appveyor.com/project/wuvvy/barcode-to-pc-server)
 
 ## Setup
 
