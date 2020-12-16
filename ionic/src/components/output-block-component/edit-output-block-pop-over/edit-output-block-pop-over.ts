@@ -1,10 +1,11 @@
 import { Component, NgZone } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { NavController, NavParams, ViewController } from 'ionic-angular';
+import { Config } from '../../../../../electron/src/config';
+import { ApplicationModel } from '../../../models/application.model';
+import { barcodeFormatModel } from '../../../models/barcode-format.model';
 import { OutputBlockModel } from '../../../models/output-block.model';
 import { ElectronProvider } from '../../../providers/electron/electron';
-import { Config } from '../../../../../electron/src/config';
-import { barcodeFormatModel } from '../../../models/barcode-format.model';
-
 
 @Component({
   selector: 'edit-output-block-pop-over',
@@ -25,6 +26,7 @@ export class EditOutputBlockPage {
     public viewCtrl: ViewController,
     public ngZone: NgZone,
     private electronProvider: ElectronProvider, // required from the template
+    private domSanitizer: DomSanitizer,
   ) {
     this.outputBlock = this.navParams.get('outputBlock');
     this.color = this.navParams.get('color');
@@ -95,7 +97,9 @@ export class EditOutputBlockPage {
       case 'run': this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_RUN); break;
       case 'select_option': this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_CREATE_OUTPUT_TEMPLATE); break;
       case 'beep': this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_CREATE_OUTPUT_TEMPLATE); break;
-      case 'csv_lookup': this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_CREATE_OUTPUT_TEMPLATE); break;
+      case 'csv_lookup': this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_CSV_LOOKUP); break;
+      case 'alert': this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_CREATE_OUTPUT_TEMPLATE); break;
+      default: this.electronProvider.shell.openExternal(Config.URL_TUTORIAL_CREATE_OUTPUT_TEMPLATE); break;
     }
   }
 

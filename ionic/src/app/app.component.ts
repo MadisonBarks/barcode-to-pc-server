@@ -122,13 +122,12 @@ export class MyApp {
       // Used to open files (double click)
       // On Windows when double-clicking, the system passes the file path
       // of the clicked file to the main exectutable.
-      let process = this.electronProvider.remote.process;
       let checkArgv = (argv) => {
         if (argv.length >= 2) { // process.platform == 'win32' &&
           this.events.publish('import_btpt', argv[1])
         }
       }
-      checkArgv(process.argv);
+      checkArgv(this.electronProvider.process.argv);
       this.electronProvider.ipcRenderer.on('second-instance-open', (event, argv) => {
         checkArgv(argv)
       })
@@ -275,6 +274,28 @@ export class MyApp {
               // skip output
               if (outputBlock.type == 'csv_lookup' && typeof outputBlock.skipOutput == 'undefined') {
                 outputBlock.skipOutput = false;
+              }
+            });
+          })
+        }
+
+        // v3.13.0
+        if (settings.outputProfiles) {
+          settings.outputProfiles.forEach(outputProfile => {
+            outputProfile.outputBlocks.forEach(outputBlock => {
+              if (outputBlock.type == 'http') {
+                outputBlock.httpMethod = outputBlock.method;
+              }
+            });
+          })
+        }
+
+        // v3.14.0
+        if (settings.outputProfiles) {
+          settings.outputProfiles.forEach(outputProfile => {
+            outputProfile.outputBlocks.forEach(outputBlock => {
+              if (outputBlock.type == 'http' || outputBlock.type == 'run') {
+                outputBlock.timeout = null;
               }
             });
           })

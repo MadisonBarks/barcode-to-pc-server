@@ -2,8 +2,7 @@ version: v{build} # doesn't matter because gets overwritten later on with the pa
 branches:
   only:
     - master
-    - /^v[0-9]+.[0-9]+.[0-9]+$/
-skip_non_tags: true
+skip_non_tags: false
 clone_depth: 1
 environment:
   nodejs_version: "8"
@@ -13,10 +12,6 @@ environment:
   CERTIFICATE_DOWNLOAD:
     secure: 1uWToJLKf6uUn0/fsVHbrc3lRWTNOmtHhBTGUj/INODqPtCb0s1TJICTpUiwpzWRL27o6pvHUKP9VwlYx1wy3A==
 image: Visual Studio 2015
-# init:
-#  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-# on_finish:
-#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 install:
   - ps: Install-Product node $env:nodejs_version x64
   - ps: npm install -g npm@6.11.3
@@ -42,10 +37,6 @@ install:
   - npm ci --unsafe-perm
   - cd ..
   - set NODE_ENV=production
-  # - set PATH=%APPDATA%\npm;%PATH%
-  # - set PATH=%APPVEYOR_BUILD_FOLDER%\node_modules\.bin;%PATH%
-  # - set PATH=%APPVEYOR_BUILD_FOLDER%\node_modules;%PATH%
-  # - set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%
   - set ECHO=ON
   - echo "%PATH%"
   - echo "%NODE_ENV%"
@@ -53,7 +44,7 @@ install:
   - npm --version
   - npm run tsc --version
 build_script:
-  - cmd: npm run publish
+  - cmd: npm run dist
 artifacts:
   - path: \dist\dist\nsis-web
     name: barcode-to-pc-server.offline-installer

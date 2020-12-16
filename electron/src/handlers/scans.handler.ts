@@ -8,6 +8,7 @@ import * as os from 'os';
 import * as robotjs from 'robotjs';
 import { isNumeric } from 'rxjs/util/isNumeric';
 import { lt, SemVer } from 'semver';
+import { Config } from '../config';
 import * as Supplant from 'supplant';
 import * as WebSocket from 'ws';
 import { requestModel, requestModelHelo, requestModelOnSmartphoneCharge, requestModelPutScanSessions, requestModelRemoteComponent } from '../../../ionic/src/models/request.model';
@@ -20,6 +21,7 @@ import { UiHandler } from './ui.handler';
 export class ScansHandler implements Handler {
     private static instance: ScansHandler;
     private devices = {};
+    private ipcClient;
 
     private constructor(
         private settingsHandler: SettingsHandler,
@@ -57,7 +59,9 @@ export class ScansHandler implements Handler {
 
                 // keyboard emulation
                 for (let outputBlock of scan.outputBlocks) {
-                    if (outputBlock.skipOutput && outputBlock.type != 'http' && outputBlock.type != 'run') {
+                    if (outputBlock.skipOutput && outputBlock.type != 'http' && outputBlock.type != 'run'
+                        && outputBlock.type != 'csv_lookup') {
+                        // for these components the continue; is called inside the switch below (< v3.12.0)
                         continue;
                     }
 
@@ -78,10 +82,10 @@ export class ScansHandler implements Handler {
                             if (lt(this.devices[request.deviceId].version, new SemVer('3.12.0'))) {
                                 /** @deprecated */
                                 if (outputBlock.skipOutput) {
-                                    axios.request({ url: outputBlock.value, method: outputBlock.method, timeout: 10000 });
+                                    axios.request({ url: outputBlock.value, method: outputBlock.method, timeout: outputBlock.timeout || Config.DEFAULT_COMPONENT_TIMEOUT });
                                 } else {
                                     try {
-                                        let response = (await axios.request({ url: outputBlock.value, method: outputBlock.method, timeout: 10000 })).data;
+                                        let response = (await axios.request({ url: outputBlock.value, method: outputBlock.method, timeout: outputBlock.timeout || Config.DEFAULT_COMPONENT_TIMEOUT })).data;
                                         if (typeof response == 'object') {
                                             response = JSON.stringify(response);
                                         }
@@ -110,10 +114,10 @@ export class ScansHandler implements Handler {
                             if (lt(this.devices[request.deviceId].version, new SemVer('3.12.0'))) {
                                 /** @deprecated */
                                 if (outputBlock.skipOutput) {
-                                    exec(outputBlock.value, { cwd: os.homedir(), timeout: 10000 })
+                                    exec(outputBlock.value, { cwd: os.homedir(), timeout: outputBlock.timeout || Config.DEFAULT_COMPONENT_TIMEOUT })
                                 } else {
                                     try {
-                                        outputBlock.value = execSync(outputBlock.value, { cwd: os.homedir(), timeout: 10000, maxBuffer: 1024 }).toString();
+                                        outputBlock.value = execSync(outputBlock.value, { cwd: os.homedir(), timeout: outputBlock.timeout || Config.DEFAULT_COMPONENT_TIMEOUT }).toString();
                                         this.typeString(outputBlock.value)
                                     } catch (error) {
                                         // Do not change the value when the command fails to allow the Send again feature to work
@@ -151,7 +155,7 @@ export class ScansHandler implements Handler {
                             }
                             break;
                         }
-                    } // end switch
+                    } // end switch(outputBlock.type)
                 } // end for
 
                 // Append to csv
@@ -260,23 +264,35 @@ export class ScansHandler implements Handler {
                 let errorMessage = null;
 
                 // Overrides the necessary values of the request.outputBlock
-                // object and sends it back to the app.
+                // object and sends it back to the app.s
                 switch (request.outputBlock.type) {
                     case 'http': {
                         try {
-                            let response = (await axios.request({ url: request.outputBlock.value, method: request.outputBlock.method, timeout: 10000 })).data;
+                            let params = JSON.parse(request.outputBlock.httpParams || '{}');
+                            if (params == {}) params = null;
+                            let haeders = JSON.parse(request.outputBlock.httpHeaders || '{}');
+                            if (haeders == {}) haeders = null;
+
+                            let response = (await axios.request({
+                                url: request.outputBlock.value,
+                                data: request.outputBlock.httpData,
+                                params: params,
+                                headers: haeders,
+                                method: request.outputBlock.method || request.outputBlock.httpMethod,
+                                timeout: request.outputBlock.timeout || Config.DEFAULT_COMPONENT_TIMEOUT
+                            })).data;
                             if (typeof response == 'object') response = JSON.stringify(response);
                             responseOutputBlock.value = response;
                         } catch (error) {
                             responseOutputBlock.value = "";
-                            errorMessage = 'The HTTP ' + request.outputBlock.method.toUpperCase() + ' request failed. <br><br>Error code: ' + error.code; // ECONNREFUSED
+                            errorMessage = 'The HTTP ' + request.outputBlock.httpMethod.toUpperCase() + ' request failed. <br><br>Error code: ' + error.code;
                         }
                         break;
                     }
 
                     case 'run': {
                         try {
-                            responseOutputBlock.value = execSync(request.outputBlock.value, { cwd: os.homedir(), timeout: 10000, maxBuffer: 1024 }).toString();
+                            responseOutputBlock.value = execSync(request.outputBlock.value, { cwd: os.homedir(), timeout: request.outputBlock.timeout || Config.DEFAULT_COMPONENT_TIMEOUT }).toString();
                         } catch (error) {
                             responseOutputBlock.value = "";
                             let output = error.output.toString().substr(2);
@@ -325,7 +341,7 @@ export class ScansHandler implements Handler {
                 ws.send(JSON.stringify(remoteComponentResponse));
                 break;
             } // end ACTION_REMOTE_COMPONENT
-        }
+        } // end switch(message.action)
         return message;
     }
 
@@ -360,6 +376,10 @@ export class ScansHandler implements Handler {
 
     onWsError(ws: WebSocket, err: Error) {
         throw new Error("Method not implemented.");
+    }
+
+    setIpcClient(ipcClient) {
+        this.ipcClient = ipcClient;
     }
 
     /**

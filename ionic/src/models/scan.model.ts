@@ -18,17 +18,17 @@ export class ScanModel {
      */
     format: 'QR_CODE' | 'DATA_MATRIX' | 'UPC_E' | 'UPC_A' | 'EAN_8' | 'EAN_13' | 'CODE_128' | 'CODE_39' | 'CODE_93' | 'CODABAR' | 'ITF' | 'RSS14' | 'RSS_EXPANDED' | 'PDF_417' | 'AZTEC' | 'MSI';
     /**
-     * @deprecated use the OutputBlock instead
+     * @deprecated use the DATE Component instead
      */
     date: number;
 
     /**
-     * @deprecated use the OutputBlock instead
+     * @deprecated use the NUMBER Component instead
      */
     quantity: string;
 
     /**
-     * @deprecated use the ToString method
+     * @deprecated use the ScanModel.ToString() method
      */
     text: string;
 
@@ -69,6 +69,8 @@ export class ScanModel {
                 case 'csv_lookup': return block.value;
                 case 'barcode': return block.value;
                 case 'delay': return ''
+                case 'beep': return ''
+                case 'alert': return ''
                 default: return '';
             }
         }).join(fieldSeparator).replace(/\s+/g, ' ');
@@ -82,6 +84,9 @@ export class ScanModel {
      * in both main and renderer project (remember to keep them at the same
      * version)
      *
+     * Warning: update the filter condition when adding a new outputBlock that
+     * doesn't produce output
+     *
      * @param newLineCharacter must be composed by \n and \r(s). Be carrefoul,
      * because it's stored as 'LF' and 'CR'(s) in the settings.
      */
@@ -93,6 +98,7 @@ export class ScanModel {
                         outputBlock.type != 'key' &&
                         outputBlock.type != 'delay' &&
                         outputBlock.type != 'beep' &&
+                        outputBlock.type != 'alert' && // to avoidprinting the dialog message in csv files // update also in app.
                         // 'if' and 'endif' bloks never reach
                         // the server because they're stripped on the app side
 

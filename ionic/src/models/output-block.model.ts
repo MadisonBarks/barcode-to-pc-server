@@ -45,7 +45,7 @@ export class OutputBlockModel {
      *
      * Warning: remeber to update also edit-output-block-pop-over.ts/onHelpClick() method when chaning this field.
      */
-    type: 'key' | 'text' | 'variable' | 'function' | 'barcode' | 'delay' | 'if' | 'endif' | 'http' | 'run' | 'select_option' | 'beep' | 'csv_lookup';
+    type: 'key' | 'text' | 'variable' | 'function' | 'barcode' | 'delay' | 'if' | 'endif' | 'http' | 'run' | 'select_option' | 'beep' | 'csv_lookup' | 'alert';
     /**
      * When true means that the user doesn't want to type or append to files
      * the component value but instead he wants to acquire the data, and use it
@@ -69,15 +69,22 @@ export class OutputBlockModel {
     label?: string;
 
     /**
-     * HTTP request method
-     */
-    method?: 'get' | 'post';
-
-    /**
      * Enabled formats for the BARCODE component.
      * When the array is empty, then all barcode formats are enabled.
     */
     enabledFormats?: string[];
+
+    /**
+     * Parameters for the HTTP component
+     */
+    httpMethod?: 'get' | 'delete' | 'head' | 'options' | 'post' | 'put' | 'patch';
+    httpData?: string;
+    httpParams?: string;
+    httpHeaders?: string;
+    /**
+     * @deprecated
+     */
+    method?: 'get' | 'post'; // TODO: add upgrade script
 
     /**
      * Parameters for the BEEP component
@@ -99,6 +106,19 @@ export class OutputBlockModel {
     resultColumn?: number;
     notFoundValue?: string;
     delimiter?: string;
+
+    /**
+     * Parameters for the ALERT component
+     */
+    alertTitle?: string;
+    alertDiscardScanButton?: string;
+    alertScanAgainButton?: string;
+    alertOkButton?: string;
+
+    /**
+     * Parameters for RUN and HTTP component
+     */
+    timeout?: number;
 
     static FindEndIfIndex(outputBlocks: OutputBlockModel[], startFrom = 0): number {
         let skip = 0;

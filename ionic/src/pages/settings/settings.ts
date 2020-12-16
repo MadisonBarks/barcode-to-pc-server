@@ -1,13 +1,13 @@
-import { Component, HostListener, ViewChild, NgZone } from '@angular/core';
+import { Component, HostListener, NgZone, ViewChild } from '@angular/core';
 import ElectronStore from 'electron-store';
-import { Alert, AlertController, Navbar, NavController, NavParams, AlertButton, Events } from 'ionic-angular';
+import { Alert, AlertButton, AlertController, Events, Navbar, NavController, NavParams } from 'ionic-angular';
 import { DragulaService } from "ng2-dragula";
 import { Config } from '../../../../electron/src/config';
+import { OutputBlockModel } from '../../models/output-block.model';
+import { OutputProfileModel } from '../../models/output-profile.model';
 import { SettingsModel } from '../../models/settings.model';
 import { ElectronProvider } from '../../providers/electron/electron';
 import { LicenseProvider } from '../../providers/license/license';
-import { OutputBlockModel } from '../../models/output-block.model';
-import { OutputProfileModel } from '../../models/output-profile.model';
 
 /**
  * Generated class for the SettingsPage page.
@@ -89,10 +89,11 @@ export class SettingsPage {
       // OTHER
       { name: 'JavaScript function', value: '', type: 'function', editable: true, skipOutput: false },
       { name: 'SELECT_OPTION', value: '', type: 'select_option', skipOutput: false },
-      { name: 'HTTP', value: '', type: 'http', method: 'get', editable: true, skipOutput: false },
-      { name: 'RUN', value: '', type: 'run', editable: true, skipOutput: false },
-      { name: 'CSV_LOOKUP', value: '{{ barcode }}', type: 'csv_lookup', skipOutput: false, editable: true, csvFile: '', searchColumn: 1, resultColumn: 2, notFoundValue: '',  delimiter: ',' },
+      { name: 'HTTP', value: '', type: 'http', httpMethod: 'get', httpData: null, httpParams: null, httpHeaders: null, editable: true, skipOutput: false, timeout: 10000 },
+      { name: 'RUN', value: '', type: 'run', editable: true, skipOutput: false, timeout: 10000 },
+      { name: 'CSV_LOOKUP', value: '{{ barcode }}', type: 'csv_lookup', skipOutput: false, editable: true, csvFile: '', searchColumn: 1, resultColumn: 2, notFoundValue: '', delimiter: ',' },
       { name: 'BEEP', value: 'beep', type: 'beep', editable: true, beepsNumber: 1, beepSpeed: 'medium' },
+      { name: 'ALERT', value: '', type: 'alert', editable: true, alertTitle: 'Alert', alertDiscardScanButton: 'Discard scan', alertScanAgainButton: 'Scan again', alertOkButton: 'Ok' },
     ];
   }
 

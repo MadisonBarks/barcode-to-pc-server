@@ -4,6 +4,8 @@ const electronBuilder = require('../node_modules/electron-builder')
 const typescript = require('../node_modules/typescript')
 const mocha = require('../node_modules/mocha')
 const fs = require('fs');
+const zip = require('gulp-zip');
+const release = require('fttx-gulp-github-release');
 
 gulp.task('serve', ['electron:assets', 'ionic:install'], () => {
   const ionicConfig = require('@ionic/app-scripts/dist/util/config')
@@ -93,11 +95,29 @@ gulp.task('electron:executables', ['mkdir'], async () => {
 gulp.task('build', ['electron:resources', 'electron:tsc', 'ionic:build', 'electron:assets', 'electron:executables']);
 
 gulp.task('dist', ['build'], () => {
-  return electronBuilder.build({ projectDir: '../dist' });
+  return electronBuilder.build({ projectDir: '../dist', publish: 'never' });
 })
 
-gulp.task('publish', ['build'], () => {
-  return electronBuilder.build({ projectDir: '../dist', publish: 'always' });
+gulp.task('publish', [], () => {
+  return new Promise((resolve, reject) => {
+    electronBuilder.build({ projectDir: '../dist', publish: 'always' }).then(result => {
+      if (process.platform.startsWith('win')) {
+        // Offline installer for Windows only
+        gulp.src('../dist/dist/nsis-web/*')
+          .pipe(zip('barcode-to-pc-server.offline-installer.zip'))
+          .pipe(gulp.dest('../dist/dist/'))
+          .pipe(release({
+            draft: true,
+            manifest: require('../package.json'),
+            reuseRelease: true,
+          }))
+          .on('end', resolve)
+          .on('error', reject);
+      } else {
+        resolve();
+      }
+    })
+  });
 })
 
 gulp.task('test', ['build'], () => {
