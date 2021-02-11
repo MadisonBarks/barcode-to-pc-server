@@ -1,19 +1,21 @@
 
 Modified by wuvvy_ 
 
+Version 3.13.1
+
 ## Useful links
 
 <h1 align="center">Barcode to PC server</h1>
 
 <div align="center">
-  <a href="https://github.com/fttx/barcode-to-pc-server/releases">
+  <a href="https://github.com/wuvvy_/barcode-to-pc-server/releases">
     <img alt="Downloads"
-    src="https://img.shields.io/github/downloads/fttx/barcode-to-pc-server/total">
+    src="https://img.shields.io/github/downloads/wuvvy_/barcode-to-pc-server/total">
   </a>
 
-  <a href="https://github.com/fttx/barcode-to-pc-server/releases">
+  <a href="https://github.com/wuvvy_/barcode-to-pc-server/releases">
     <img alt="GitHub release (latest SemVer)"
-    src="https://img.shields.io/github/v/release/fttx/barcode-to-pc-server?color=rgb%2872%2C191%2C29%29">
+    src="https://img.shields.io/github/v/release/wuvvy_/barcode-to-pc-server?color=rgb%2872%2C191%2C29%29">
   </a>
 
 * Server: This
